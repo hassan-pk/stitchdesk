@@ -1,0 +1,401 @@
+{
+  "id": "stitchdesk",
+  "name": "StitchDesk",
+  "tagline": "Measurements remembered. Orders delivered.",
+  "category": "Tailoring & boutique",
+  "color": "#7C3AED",
+  "description": "Offline customer measurements, design references, tailoring orders, trial dates and advances for tailors and boutiques.",
+  "entities": [
+    {
+      "key": "customers",
+      "label": "Customers",
+      "singular": "customer",
+      "description": "Contact details kept locally on this computer.",
+      "primary": "name",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "phone",
+          "label": "Phone",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "address",
+          "label": "Address",
+          "type": "textarea"
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "textarea"
+        }
+      ],
+      "columns": [
+        "name",
+        "phone",
+        "address"
+      ]
+    },
+    {
+      "key": "measurements",
+      "label": "Measurement profiles",
+      "singular": "measurement profile",
+      "description": "Reusable measurements linked to a customer; use a separate named profile for each garment or fitting.",
+      "primary": "name",
+      "fields": [
+        {
+          "key": "name",
+          "label": "Profile name",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "customer",
+          "label": "Customer",
+          "type": "reference",
+          "required": true,
+          "reference": "customers"
+        },
+        {
+          "key": "garment",
+          "label": "Garment",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Shalwar kameez",
+            "Suit",
+            "Shirt",
+            "Trousers",
+            "Dress",
+            "Other"
+          ]
+        },
+        {
+          "key": "unit",
+          "label": "Unit",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Inches",
+            "Centimetres"
+          ]
+        },
+        {
+          "key": "measuredOn",
+          "label": "Measured on",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "neck",
+          "label": "Neck",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "shoulder",
+          "label": "Shoulder",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "chest",
+          "label": "Chest / bust",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "waist",
+          "label": "Waist",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "hip",
+          "label": "Hip",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "sleeve",
+          "label": "Sleeve",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "length",
+          "label": "Garment length",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "inseam",
+          "label": "Inseam",
+          "type": "number",
+          "min": 0
+        },
+        {
+          "key": "notes",
+          "label": "Fit and additional measurements",
+          "type": "textarea"
+        }
+      ],
+      "columns": [
+        "name",
+        "customer",
+        "garment",
+        "unit",
+        "measuredOn"
+      ]
+    },
+    {
+      "key": "orders",
+      "label": "Tailoring orders",
+      "singular": "tailoring order",
+      "description": "Track garment work, reference designs, cloth received and trial/delivery promises.",
+      "primary": "title",
+      "fields": [
+        {
+          "key": "title",
+          "label": "Order title",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "profile",
+          "label": "Customer measurement profile",
+          "type": "reference",
+          "required": true,
+          "reference": "measurements"
+        },
+        {
+          "key": "garment",
+          "label": "Garment description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "quantity",
+          "label": "Garment quantity",
+          "type": "number",
+          "required": true,
+          "min": 1,
+          "default": 1,
+          "integer": true
+        },
+        {
+          "key": "fabric",
+          "label": "Fabric / cloth received",
+          "type": "textarea",
+          "required": true
+        },
+        {
+          "key": "design",
+          "label": "Design and finishing instructions",
+          "type": "textarea"
+        },
+        {
+          "key": "image",
+          "label": "Design reference image",
+          "type": "image"
+        },
+        {
+          "key": "bookedOn",
+          "label": "Booking date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "trialDate",
+          "label": "Trial date",
+          "type": "date"
+        },
+        {
+          "key": "dueDate",
+          "label": "Delivery due",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Booked",
+            "Cutting",
+            "Stitching",
+            "Trial",
+            "Ready",
+            "Delivered",
+            "Cancelled"
+          ]
+        },
+        {
+          "key": "rate",
+          "label": "Price per garment",
+          "type": "money",
+          "required": true,
+          "min": 0,
+          "default": 0
+        },
+        {
+          "key": "amount",
+          "label": "Order amount",
+          "type": "money",
+          "required": true,
+          "min": 0,
+          "default": 0
+        },
+        {
+          "key": "paid",
+          "label": "Advance received",
+          "type": "money",
+          "min": 0,
+          "default": 0
+        },
+        {
+          "key": "paymentMethod",
+          "label": "Initial payment method",
+          "type": "select",
+          "required": true,
+          "options": [
+            "cash",
+            "card",
+            "bank"
+          ],
+          "default": "cash",
+          "hint": "Applies only to money received when this record is created; later receipts choose their own method."
+        },
+        {
+          "key": "notes",
+          "label": "Fitting / delivery notes",
+          "type": "textarea"
+        }
+      ],
+      "columns": [
+        "title",
+        "profile",
+        "status",
+        "trialDate",
+        "dueDate",
+        "amount"
+      ],
+      "workflow": {
+        "field": "status",
+        "initial": "Booked",
+        "states": [
+          "Booked",
+          "Cutting",
+          "Stitching",
+          "Trial",
+          "Ready",
+          "Delivered",
+          "Cancelled"
+        ],
+        "terminal": [
+          "Delivered",
+          "Cancelled"
+        ]
+      },
+      "finance": {
+        "total": "amount",
+        "paid": "paid"
+      },
+      "calculations": [
+        {
+          "target": "amount",
+          "op": "multiply",
+          "fields": [
+            "quantity",
+            "rate"
+          ]
+        }
+      ],
+      "dateOrder": [
+        [
+          "bookedOn",
+          "trialDate"
+        ],
+        [
+          "bookedOn",
+          "dueDate"
+        ],
+        [
+          "trialDate",
+          "dueDate"
+        ]
+      ]
+    },
+    {
+      "key": "expenses",
+      "label": "Expenses",
+      "singular": "expense",
+      "description": "Record business spending independently of customer receipts.",
+      "primary": "description",
+      "fields": [
+        {
+          "key": "description",
+          "label": "Description",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "date",
+          "label": "Date",
+          "type": "date",
+          "required": true
+        },
+        {
+          "key": "category",
+          "label": "Category",
+          "type": "text",
+          "required": true
+        },
+        {
+          "key": "amount",
+          "label": "Amount",
+          "type": "money",
+          "required": true,
+          "min": 0,
+          "default": 0
+        },
+        {
+          "key": "method",
+          "label": "Paid through",
+          "type": "select",
+          "required": true,
+          "options": [
+            "Cash",
+            "Card",
+            "Bank"
+          ]
+        },
+        {
+          "key": "notes",
+          "label": "Notes",
+          "type": "textarea"
+        }
+      ],
+      "columns": [
+        "description",
+        "date",
+        "category",
+        "amount"
+      ]
+    }
+  ],
+  "limitations": [
+    "Measurements are live reference profiles, not automatically frozen snapshots; copy a profile before changing it when an existing order relies on the old fit.",
+    "One design image per order; no pattern CAD or garment-photo gallery.",
+    "Dates are entered manually; no automatic SMS/WhatsApp, production scheduling or piece-rate payroll.",
+    "Fabric is described on the order, not managed as a stock ledger.",
+    "No refund workflow; cancellation is restricted to unpaid orders."
+  ]
+}

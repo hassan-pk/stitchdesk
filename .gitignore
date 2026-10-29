@@ -1,0 +1,12 @@
+node_modules/
+dist/
+dist-test/
+release/
+test-results/
+*.sqlite*
+*.db
+*.bak
+*.log
+.env
+.env.*
+backups/

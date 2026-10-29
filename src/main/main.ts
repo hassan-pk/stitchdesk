@@ -1,0 +1,27 @@
+import {app,BrowserWindow,ipcMain,dialog} from 'electron';
+import {mkdirSync,readdirSync,unlinkSync,renameSync,existsSync} from 'node:fs';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {randomUUID} from 'node:crypto';
+import configuration from '../business.json';
+import type {BusinessConfig} from '../shared/types';
+import {documentHTML} from '../shared/printing';
+import {Store} from './store';
+const config=configuration as BusinessConfig;
+app.setName(config.name);app.setAppUserModelId(`com.hassanpk.${config.id}`);
+app.setPath('userData',process.env.BUSINESS_DATA_DIR?path.resolve(process.env.BUSINESS_DATA_DIR):path.join(app.getPath('appData'),config.name));
+let store:Store;let win:BrowserWindow;let timer:NodeJS.Timeout|undefined;
+const renderer=path.join(__dirname,'../renderer/index.html');const allowed=pathToFileURL(renderer).href;
+function backup(){const dir=path.join(app.getPath('userData'),'backups');mkdirSync(dir,{recursive:true});const target=path.join(dir,`automatic-${new Date().toISOString().slice(0,10)}.sqlite`);const temp=`${target}.${randomUUID()}.tmp`;try{store.backupTo(temp);renameSync(temp,target);}finally{if(existsSync(temp))unlinkSync(temp);}const files=readdirSync(dir).filter(f=>/^automatic-\d{4}-\d{2}-\d{2}\.sqlite$/.test(f)).sort();for(const file of files.slice(0,Math.max(0,files.length-30)))unlinkSync(path.join(dir,file));}
+function handlers(){
+ const on=(name:string,fn:(...args:any[])=>unknown)=>ipcMain.handle(`desk:${name}`,(event,...args)=>{if(event.sender!==win.webContents||event.senderFrame!==win.webContents.mainFrame||event.senderFrame.url!==allowed)throw Error('Untrusted application frame');return fn(...args);});
+ on('snapshot',()=>store.snapshot());on('setup',i=>store.setup(i));on('login',(u,p)=>store.login(u,p));on('logout',()=>store.logout());on('save',(e,id,v)=>store.save(e,id,v));on('transition',(e,id,s)=>store.transition(e,id,s));on('collect',(id,a,m)=>store.collect(id,a,m));on('saveShop',s=>store.saveShop(s));on('changePassword',(a,b)=>store.changePassword(a,b));
+ on('exportBackup',async()=>{if(!store.snapshot().user)throw Error('Sign in first');const selected=await dialog.showSaveDialog(win,{defaultPath:`${config.name}-${new Date().toISOString().slice(0,10)}.sqlite`,filters:[{name:config.name+' backup',extensions:['sqlite']}]});if(selected.canceled||!selected.filePath)return null;if(!store.snapshot().user)throw Error('Sign in first');const target=selected.filePath;if(path.resolve(target)===path.resolve(app.getPath('userData'),'business.sqlite'))throw Error('Choose another backup path');const temp=`${target}.${randomUUID()}.tmp`;try{store.backupTo(temp);renameSync(temp,target);}finally{if(existsSync(temp))unlinkSync(temp);}return target;});
+ on('restoreBackup',async()=>{if(!store.snapshot().user)throw Error('Sign in first');const selected=await dialog.showOpenDialog(win,{properties:['openFile'],filters:[{name:config.name+' backup',extensions:['sqlite']}]});if(selected.canceled||!selected.filePaths[0])return null;const answer=await dialog.showMessageBox(win,{type:'warning',message:'Replace current records with this backup?',detail:'A recovery copy is saved first. Backups from other applications are rejected. You will be signed out.',buttons:['Cancel','Restore'],defaultId:0,cancelId:0});if(answer.response!==1)return null;if(!store.snapshot().user)throw Error('Sign in first');store.restoreFrom(selected.filePaths[0]);return store.snapshot();});
+ on('print',async(id:string)=>{const snap=store.snapshot();if(!snap.user)throw Error('Sign in first');const record=snap.records.find(r=>r.id===id);if(!record)throw Error('Record not found');const print=new BrowserWindow({show:false,webPreferences:{sandbox:true,contextIsolation:true,nodeIntegration:false}});try{await print.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(documentHTML(config,snap,record)));await new Promise<void>((resolve,reject)=>print.webContents.print({silent:false,printBackground:true},(success,reason)=>success||/cancel/i.test(reason)?resolve():reject(Error(reason||'Printing failed'))));}finally{print.destroy();}});
+}
+if(!app.requestSingleInstanceLock())app.quit();else{
+ app.on('second-instance',()=>{if(win?.isMinimized())win.restore();win?.focus();});
+ app.whenReady().then(async()=>{const dir=app.getPath('userData');mkdirSync(dir,{recursive:true});store=new Store(path.join(dir,'business.sqlite'),config);try{backup();}catch(e){console.error(e);}timer=setInterval(()=>{try{backup();}catch(e){console.error(e);}},3600000);handlers();win=new BrowserWindow({width:1440,height:960,minWidth:1000,minHeight:700,title:config.name,backgroundColor:'#f4f6fa',icon:app.isPackaged?path.join(process.resourcesPath,'icon.png'):path.join(__dirname,'../../build/icon.png'),webPreferences:{preload:path.join(__dirname,'preload.js'),sandbox:true,contextIsolation:true,nodeIntegration:false}});win.removeMenu();win.webContents.setWindowOpenHandler(()=>({action:'deny'}));win.webContents.on('will-navigate',(event,url)=>{if(url!==allowed)event.preventDefault();});win.webContents.session.setPermissionRequestHandler((_c,_p,callback)=>callback(false));win.webContents.session.on('will-download',event=>event.preventDefault());await win.loadFile(renderer);}).catch(error=>{dialog.showErrorBox(config.name+' could not start',String(error));app.quit();});
+ app.on('window-all-closed',()=>app.quit());app.on('before-quit',()=>{if(timer)clearInterval(timer);if(store){try{backup();}catch(e){console.error(e);}store.close();}});
+}

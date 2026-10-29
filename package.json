@@ -1,0 +1,61 @@
+{
+  "name": "stitchdesk",
+  "version": "0.1.0",
+  "description": "Offline customer measurements, design references, tailoring orders, trial dates and advances for tailors and boutiques.",
+  "author": "hassan-pk",
+  "license": "MIT",
+  "private": true,
+  "main": "dist/main/main.js",
+  "scripts": {
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.main.json --noEmit",
+    "build": "npm run typecheck && tsc -p tsconfig.main.json && vite build",
+    "start": "npm run build && electron .",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/tests/*.test.js",
+    "test:desktop": "npm run build && node tests/desktop.cjs",
+    "dist": "npm run build && electron-builder --win nsis",
+    "pack": "npm run build && electron-builder --win --dir"
+  },
+  "build": {
+    "appId": "com.hassanpk.stitchdesk",
+    "productName": "StitchDesk",
+    "directories": {
+      "output": "release"
+    },
+    "extraResources": [
+      {
+        "from": "build/icon.png",
+        "to": "icon.png"
+      }
+    ],
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "LICENSE",
+      "README.md",
+      "BUSINESS.md"
+    ],
+    "asar": true,
+    "win": {
+      "icon": "build/icon.ico",
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^24.19.2",
+    "concurrently": "^10.0.6",
+    "cross-env": "^10.1.0",
+    "electron": "^45.1.0",
+    "electron-builder": "^26.18.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "wait-on": "^9.5.1"
+  }
+}
